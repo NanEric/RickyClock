@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DualChrono</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            },
+            keyframes: {
+              shake: {
+                '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+                '10%, 90%': { transform: 'translate3d(-4px, 0, 0)' },
+                '20%, 80%': { transform: 'translate3d(5px, 0, 0)' },
+                '30%, 50%, 70%': { transform: 'translate3d(-8px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(8px, 0, 0)' },
+              },
+              pulseRed: {
+                '0%, 100%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.7)' },
+                '70%': { boxShadow: '0 0 0 20px rgba(239, 68, 68, 0)' },
+              }
+            },
+            animation: {
+              shake: 'shake 0.8s cubic-bezier(.36,.07,.19,.97) both infinite',
+              'pulse-red': 'pulseRed 2s infinite',
+            }
+          },
+        },
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

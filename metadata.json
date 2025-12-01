@@ -1,0 +1,5 @@
+{
+  "name": "Ricky Clock",
+  "description": "A split-screen time management tool featuring a precision countdown timer and a target-time alarm clock with visual vibration feedback.",
+  "requestFramePermissions": []
+}
