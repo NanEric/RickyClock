@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Pause, RotateCcw, BellOff, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, RotateCcw, BellOff, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import { TimerStatus } from '../types';
 import { useLanguage } from '../src/contexts/LanguageContext';
 
@@ -142,10 +142,24 @@ export const CountdownTimer: React.FC = () => {
     setStatus(TimerStatus.IDLE);
     setTimeLeft(0);
     if (timerRef.current) clearInterval(timerRef.current);
-    if (gainNode && audioContext) {
-      gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    }
+  };
+
+  // Clear all input fields
+  const clearAllInputs = () => {
+    setHours(0);
+    setMinutes(0);
+    setSeconds(0);
+    setTempValues({
+      hours: '0',
+      minutes: '0',
+      seconds: '0'
+    });
+    // Reset touched state
+    setIsTouched({
+      hours: false,
+      minutes: false,
+      seconds: false
+    });
   };
 
   const stopAlarm = () => {
@@ -193,19 +207,52 @@ export const CountdownTimer: React.FC = () => {
 
   // 处理输入框的显示值
   const getInputValue = (type: 'hours' | 'minutes' | 'seconds', value: number) => {
-    // 如果用户已经与输入框交互过且当前值为0，则显示空字符串
+    // 如果用户已经与输入框交互过，则显示临时值
     // 否则显示实际值（包括初始状态的0）
-    return (isTouched[type] && value === 0) ? '' : value.toString();
+    return isTouched[type] ? tempValues[type] : value.toString();
   };
 
+  // 存储输入框的临时值
+  const [tempValues, setTempValues] = useState<{
+    hours: string;
+    minutes: string;
+    seconds: string;
+  }>({
+    hours: '0',
+    minutes: '0',
+    seconds: '0'
+  });
+
   // 处理输入框获取焦点事件
-  const handleFocus = (type: 'hours' | 'minutes' | 'seconds') => {
+  const handleFocus = (type: 'hours' | 'minutes' | 'seconds', value: number) => {
+    // 保存当前值到临时状态
+    setTempValues(prev => ({
+      ...prev,
+      [type]: value === 0 ? '' : value.toString()
+    }));
+    
     // 如果这是用户第一次与输入框交互，则设置对应的touched状态
     if (!isTouched[type]) {
       setIsTouched(prev => ({
         ...prev,
         [type]: true
       }));
+    }
+  };
+
+  // 处理输入框失去焦点事件
+  const handleBlur = (type: 'hours' | 'minutes' | 'seconds', setter: React.Dispatch<React.SetStateAction<number>>) => {
+    const value = tempValues[type];
+    // 如果输入为空，则恢复之前的值
+    if (value === '') {
+      setTempValues(prev => ({
+        ...prev,
+        [type]: '0'
+      }));
+    } else {
+      // 否则更新实际值
+      const num = parseInt(value, 10) || 0;
+      setter(num);
     }
   };
 
@@ -269,8 +316,13 @@ export const CountdownTimer: React.FC = () => {
               <input
                 type="number"
                 value={getInputValue('hours', hours)}
-                onFocus={() => handleFocus('hours')}
-                onChange={(e) => handleInputChange(setHours, e.target.value, 99)}
+                onFocus={() => handleFocus('hours', hours)}
+                onBlur={() => handleBlur('hours', setHours)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setTempValues(prev => ({ ...prev, hours: value }));
+                  handleInputChange(setHours, value, 99);
+                }}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
             </div>
@@ -279,8 +331,13 @@ export const CountdownTimer: React.FC = () => {
               <input
                 type="number"
                 value={getInputValue('minutes', minutes)}
-                onFocus={() => handleFocus('minutes')}
-                onChange={(e) => handleInputChange(setMinutes, e.target.value, 59)}
+                onFocus={() => handleFocus('minutes', minutes)}
+                onBlur={() => handleBlur('minutes', setMinutes)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setTempValues(prev => ({ ...prev, minutes: value }));
+                  handleInputChange(setMinutes, value, 59);
+                }}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
             </div>
@@ -289,8 +346,13 @@ export const CountdownTimer: React.FC = () => {
               <input
                 type="number"
                 value={getInputValue('seconds', seconds)}
-                onFocus={() => handleFocus('seconds')}
-                onChange={(e) => handleInputChange(setSeconds, e.target.value, 59)}
+                onFocus={() => handleFocus('seconds', seconds)}
+                onBlur={() => handleBlur('seconds', setSeconds)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setTempValues(prev => ({ ...prev, seconds: value }));
+                  handleInputChange(setSeconds, value, 59);
+                }}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
             </div>
@@ -298,7 +360,18 @@ export const CountdownTimer: React.FC = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-center space-x-4">
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-center items-center space-x-4">
+            {/* Clean Button - Only show when not running */}
+            {status !== TimerStatus.RUNNING && !isRinging && (
+              <button
+                onClick={clearAllInputs}
+                className="flex items-center justify-center h-12 px-6 space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-full font-medium transition-colors"
+              >
+                <Trash2 size={16} />
+                <span>{t('clean').toUpperCase()}</span>
+              </button>
+            )}
           {isRinging ? (
             <button
               onClick={stopAlarm}
@@ -337,6 +410,12 @@ export const CountdownTimer: React.FC = () => {
                 </button>
               )}
             </>
+          )}
+          </div>
+          
+          {/* Spacer to maintain layout when Clean button is hidden */}
+          {!isRinging && status === TimerStatus.RUNNING && (
+            <div className="w-32"></div>
           )}
         </div>
       </div>

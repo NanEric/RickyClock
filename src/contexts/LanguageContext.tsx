@@ -37,7 +37,8 @@ const translations = {
     'wakeUp': '该起床了',
     'timePlaceholder': '时:分',
     'setAlarm': '设置闹钟',
-    'turnOff': '关闭'
+    'turnOff': '关闭',
+    'clean': '清空倒计时'
   },
   en: {
     'countdown': 'Countdown',
@@ -65,7 +66,8 @@ const translations = {
     'wakeUp': 'WAKE UP',
     'timePlaceholder': 'HH:MM',
     'setAlarm': 'Set Alarm',
-    'turnOff': 'Turn Off'
+    'turnOff': 'Turn Off',
+    'clean': 'Clean'
   }
 };
 
