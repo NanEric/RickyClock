@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, RotateCcw, BellOff, Volume2, VolumeX } from 'lucide-react';
 import { TimerStatus } from '../types';
+import { useLanguage } from '../src/contexts/LanguageContext';
 
 export const CountdownTimer: React.FC = () => {
+  const { t } = useLanguage();
   // Time inputs
   const [hours, setHours] = useState<number>(0);
   const [minutes, setMinutes] = useState<number>(0);
@@ -184,7 +186,7 @@ export const CountdownTimer: React.FC = () => {
           {/* Status Text inside Circle */}
           {status === TimerStatus.RUNNING && (
             <div className="absolute top-12 text-xs font-bold tracking-widest text-indigo-400 animate-pulse">
-              RUNNING
+              {t('running').toUpperCase()}
             </div>
           )}
           
@@ -192,10 +194,12 @@ export const CountdownTimer: React.FC = () => {
              <div className="text-center">
                <div className="flex flex-col items-center">
                 <div className="text-5xl mb-2">⏰</div>
-                <div className="text-red-500 font-bold text-xl uppercase tracking-widest">Time's Up!</div>
+                <div className="text-red-500 font-bold text-xl uppercase tracking-widest">
+                  {t('timeUp')}
+                </div>
                 <div className="flex items-center mt-2 text-sm text-gray-400">
                   <Volume2 size={16} className="mr-1 animate-pulse" />
-                  <span>闹钟正在响铃</span>
+                  <span>{t('alarmRinging')}</span>
                 </div>
               </div>
              </div>
@@ -207,7 +211,7 @@ export const CountdownTimer: React.FC = () => {
                 {String(displayTime.s).padStart(2, '0')}
               </div>
               {status === TimerStatus.IDLE && (
-                 <p className="text-gray-500 text-xs mt-4">SET DURATION</p>
+                 <p className="text-gray-500 text-xs mt-4">{t('setDuration').toUpperCase()}</p>
               )}
             </div>
           )}
@@ -221,7 +225,7 @@ export const CountdownTimer: React.FC = () => {
         {status === TimerStatus.IDLE && (
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="flex flex-col items-center">
-              <label className="text-xs text-gray-500 mb-1">HOURS</label>
+              <label className="text-xs text-gray-500 mb-1">{t('hours').toUpperCase()}</label>
               <input
                 type="number"
                 value={hours}
@@ -230,7 +234,7 @@ export const CountdownTimer: React.FC = () => {
               />
             </div>
             <div className="flex flex-col items-center">
-              <label className="text-xs text-gray-500 mb-1">MINUTES</label>
+              <label className="text-xs text-gray-500 mb-1">{t('minutes').toUpperCase()}</label>
               <input
                 type="number"
                 value={minutes}
@@ -239,7 +243,7 @@ export const CountdownTimer: React.FC = () => {
               />
             </div>
             <div className="flex flex-col items-center">
-              <label className="text-xs text-gray-500 mb-1">SECONDS</label>
+              <label className="text-xs text-gray-500 mb-1">{t('seconds').toUpperCase()}</label>
               <input
                 type="number"
                 value={seconds}
@@ -258,7 +262,7 @@ export const CountdownTimer: React.FC = () => {
               className="flex items-center space-x-2 bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-red-900/50 transition-transform active:scale-95"
             >
               <BellOff size={20} />
-              <span>Dismiss</span>
+              <span>{t('dismiss').toUpperCase()}</span>
             </button>
           ) : (
             <>
@@ -268,7 +272,7 @@ export const CountdownTimer: React.FC = () => {
                   className="flex items-center space-x-2 bg-yellow-600 hover:bg-yellow-500 text-white px-8 py-3 rounded-full font-bold transition-transform active:scale-95"
                 >
                   <Pause size={20} />
-                  <span>Pause</span>
+                  <span>{t('pause').toUpperCase()}</span>
                 </button>
               ) : (
                 <button
@@ -276,7 +280,7 @@ export const CountdownTimer: React.FC = () => {
                   className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-indigo-900/50 transition-transform active:scale-95"
                 >
                   <Play size={20} />
-                  <span>{status === TimerStatus.PAUSED ? 'Resume' : 'Start'}</span>
+                  <span>{status === TimerStatus.PAUSED ? t('resume').toUpperCase() : t('start').toUpperCase()}</span>
                 </button>
               )}
 
@@ -286,7 +290,7 @@ export const CountdownTimer: React.FC = () => {
                   className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-300 px-6 py-3 rounded-full font-semibold transition-colors"
                 >
                   <RotateCcw size={18} />
-                  <span>Reset</span>
+                  <span>{t('reset').toUpperCase()}</span>
                 </button>
               )}
             </>

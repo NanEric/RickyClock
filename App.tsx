@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Timer, AlarmClock, Split } from 'lucide-react';
+import { Timer, AlarmClock, Split, Globe } from 'lucide-react';
 import { CountdownTimer } from './components/CountdownTimer';
 import { AlarmSection } from './components/AlarmSection';
 import { TabView } from './types';
+import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
 
-export default function App() {
+const AppContent = () => {
   const [activeMobileTab, setActiveMobileTab] = useState<TabView>(TabView.TIMER);
+  const { t, language, toggleLanguage } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gray-950 text-white font-sans overflow-hidden flex flex-col">
@@ -14,33 +16,55 @@ export default function App() {
         <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-amber-400">
           DualChrono
         </h1>
-        <div className="flex bg-gray-800 rounded-lg p-1">
+        <div className="flex items-center space-x-2">
           <button
-            onClick={() => setActiveMobileTab(TabView.TIMER)}
-            className={`p-2 rounded-md transition-all ${
-              activeMobileTab === TabView.TIMER
-                ? 'bg-indigo-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            onClick={toggleLanguage}
+            className="p-2 text-gray-400 hover:text-white transition-colors"
+            title={language === 'zh' ? 'Switch to English' : '切换到中文'}
           >
-            <Timer size={20} />
+            <Globe size={20} />
           </button>
-          <button
-            onClick={() => setActiveMobileTab(TabView.ALARM)}
-            className={`p-2 rounded-md transition-all ${
-              activeMobileTab === TabView.ALARM
-                ? 'bg-amber-600 text-white shadow-lg'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <AlarmClock size={20} />
-          </button>
+          <div className="flex bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setActiveMobileTab(TabView.TIMER)}
+              className={`p-2 rounded-md transition-all ${
+                activeMobileTab === TabView.TIMER
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Timer size={20} />
+            </button>
+            <button
+              onClick={() => setActiveMobileTab(TabView.ALARM)}
+              className={`p-2 rounded-md transition-all ${
+                activeMobileTab === TabView.ALARM
+                  ? 'bg-amber-600 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <AlarmClock size={20} />
+            </button>
+          </div>
         </div>
+      </header>
+
+      {/* Desktop Header */}
+      <header className="hidden md:flex justify-between items-center p-4 bg-gray-900 border-b border-gray-800">
+        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-amber-400">
+          DualChrono
+        </h1>
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+        >
+          <Globe size={16} />
+          <span>{language === 'zh' ? 'EN' : '中'}</span>
+        </button>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col md:flex-row relative">
-        
         {/* Left Side: Countdown Timer */}
         <section 
           className={`
@@ -52,7 +76,9 @@ export default function App() {
           <div className="p-6 md:p-10 h-full flex flex-col justify-center">
             <div className="mb-6 flex items-center space-x-3 text-indigo-400 opacity-80">
               <Timer className="w-6 h-6" />
-              <span className="text-sm font-semibold tracking-widest uppercase">倒计时 (Countdown)</span>
+              <span className="text-sm font-semibold tracking-widest uppercase">
+                {t('countdown')} (Countdown)
+              </span>
             </div>
             <CountdownTimer />
           </div>
@@ -74,9 +100,11 @@ export default function App() {
           `}
         >
           <div className="p-6 md:p-10 h-full flex flex-col justify-center">
-             <div className="mb-6 flex items-center space-x-3 text-amber-400 opacity-80">
+            <div className="mb-6 flex items-center space-x-3 text-amber-400 opacity-80">
               <AlarmClock className="w-6 h-6" />
-              <span className="text-sm font-semibold tracking-widest uppercase">闹钟 (Alarm)</span>
+              <span className="text-sm font-semibold tracking-widest uppercase">
+                {t('alarm')} (Alarm)
+              </span>
             </div>
             <AlarmSection />
           </div>
@@ -84,5 +112,13 @@ export default function App() {
 
       </main>
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

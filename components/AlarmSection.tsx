@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../src/contexts/LanguageContext';
 
 export const AlarmSection: React.FC = () => {
+  const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [alarmTime, setAlarmTime] = useState<string>(''); // Format "HH:mm"
   const [isAlarmActive, setIsAlarmActive] = useState<boolean>(false);
@@ -55,7 +57,7 @@ export const AlarmSection: React.FC = () => {
       {/* Alarm Status Indicator */}
       <div className="mb-8 flex flex-col items-center space-y-2">
          <span className={`text-xs font-bold tracking-widest uppercase py-1 px-3 rounded-full ${isAlarmActive ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-800 text-gray-500'}`}>
-            {isAlarmActive ? `Alarm Set for ${alarmTime}` : 'Alarm Off'}
+            {isAlarmActive ? `${t('alarmSetFor')} ${alarmTime}` : t('alarmOff')}
          </span>
       </div>
 
@@ -74,11 +76,11 @@ export const AlarmSection: React.FC = () => {
           {isRinging ? (
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 rounded-[inherit] z-20">
                 <Bell className="w-16 h-16 text-amber-500 animate-bounce mb-4" />
-                <h3 className="text-2xl font-bold text-white">WAKE UP</h3>
+                <h3 className="text-2xl font-bold text-white">{t('wakeUp')}</h3>
              </div>
           ) : null}
 
-          <div className="text-gray-400 text-sm font-medium mb-2 uppercase tracking-wide">Current Time</div>
+          <div className="text-gray-400 text-sm font-medium mb-2 uppercase tracking-wide">{t('currentTime')}</div>
           <div className="flex items-baseline space-x-2 font-mono text-white">
             <span className="text-6xl sm:text-7xl font-bold">{hours}:{minutes}</span>
             <span className="text-2xl sm:text-3xl text-gray-500 font-medium">{seconds}</span>
@@ -96,13 +98,14 @@ export const AlarmSection: React.FC = () => {
               className="w-full flex items-center justify-center space-x-3 bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-amber-900/50 transition-all animate-pulse"
             >
               <BellOff size={24} />
-              <span>STOP ALARM</span>
+              <span>{t('stopAlarm')}</span>
             </button>
           </div>
         ) : (
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col space-y-2">
-              <label htmlFor="alarm-time" className="text-gray-400 text-xs font-semibold uppercase ml-1">Set Alarm Time</label>
+          <div className="space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-medium text-gray-200 mb-2">{t('setAlarm')}</h3>
+              <label htmlFor="alarm-time" className="text-gray-400 text-xs font-semibold uppercase ml-1">{t('setAlarmTime')}</label>
               <input
                 id="alarm-time"
                 type="time"
@@ -111,8 +114,8 @@ export const AlarmSection: React.FC = () => {
                   setAlarmTime(e.target.value);
                   if (isAlarmActive) setIsAlarmActive(false); // Reset active state if time changes
                 }}
-                className="w-full bg-gray-950 border border-gray-700 text-white text-2xl p-4 rounded-xl focus:outline-none focus:border-amber-500 transition-colors [color-scheme:dark]" 
-                // [color-scheme:dark] ensures the browser time picker is dark mode
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-colors"
+                placeholder={t('timePlaceholder')}
               />
             </div>
 
@@ -120,7 +123,7 @@ export const AlarmSection: React.FC = () => {
               onClick={toggleAlarm}
               disabled={!alarmTime}
               className={`
-                flex items-center justify-center space-x-2 py-4 rounded-xl font-bold text-lg transition-all
+                w-full flex items-center justify-center space-x-2 py-4 rounded-xl font-bold text-lg transition-all
                 ${!alarmTime ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : ''}
                 ${alarmTime && isAlarmActive 
                   ? 'bg-green-600/20 text-green-400 border border-green-600/50 hover:bg-green-600/30' 
@@ -132,13 +135,13 @@ export const AlarmSection: React.FC = () => {
             >
               {isAlarmActive ? (
                 <>
-                  <CheckCircle2 size={24} />
-                  <span>Alarm Active</span>
+                  <Bell className="w-5 h-5" />
+                  <span>{t('turnOff')}</span>
                 </>
               ) : (
                 <>
-                  <Bell size={24} />
-                  <span>Set Alarm</span>
+                  <BellOff className="w-5 h-5" />
+                  <span>{t('setAlarm')}</span>
                 </>
               )}
             </button>
