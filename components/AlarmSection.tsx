@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Bell, BellOff, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '../src/contexts/LanguageContext';
 
@@ -50,6 +50,11 @@ export const AlarmSection: React.FC = () => {
   };
 
   const { hours, minutes, seconds } = formatDisplayTime(currentTime);
+  
+  // 检测是否为移动设备
+  const isMobile = useMemo(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }, []);
 
   return (
     <div className="flex flex-col items-center w-full max-w-md mx-auto">
@@ -106,17 +111,23 @@ export const AlarmSection: React.FC = () => {
             <div className="text-center">
               <h3 className="text-lg font-medium text-gray-200 mb-2">{t('setAlarm')}</h3>
               <label htmlFor="alarm-time" className="text-gray-400 text-xs font-semibold uppercase ml-1">{t('setAlarmTime')}</label>
-              <input
-                id="alarm-time"
-                type="time"
-                value={alarmTime}
-                onChange={(e) => {
-                  setAlarmTime(e.target.value);
-                  if (isAlarmActive) setIsAlarmActive(false); // Reset active state if time changes
-                }}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-center focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-colors"
-                placeholder={t('timePlaceholder')}
-              />
+              <div className="relative">
+                <input
+                  id="alarm-time"
+                  type="time"
+                  value={alarmTime}
+                  onChange={(e) => {
+                    setAlarmTime(e.target.value);
+                    if (isAlarmActive) setIsAlarmActive(false); // Reset active state if time changes
+                  }}
+                  className={`w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-center focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-colors ${!alarmTime ? 'text-gray-500' : 'text-white'}`}
+                />
+                {!alarmTime && isMobile && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-500">
+                    --:--
+                  </div>
+                )}
+              </div>
             </div>
 
             <button
