@@ -14,7 +14,7 @@ const AppContent = () => {
       {/* Header / Mobile Nav */}
       <header className="md:hidden flex items-center justify-between p-4 bg-gray-900 border-b border-gray-800 z-10">
         <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-amber-400">
-          DualChrono
+          {language === 'zh' ? '睿睿的时钟' : 'Ricky Timer/Clock'}
         </h1>
         <div className="flex items-center space-x-2">
           <button
@@ -52,7 +52,7 @@ const AppContent = () => {
       {/* Desktop Header */}
       <header className="hidden md:flex justify-between items-center p-4 bg-gray-900 border-b border-gray-800">
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-amber-400">
-          DualChrono
+          {language === 'zh' ? '睿睿的时钟' : 'Ricky Timer/Clock'}
         </h1>
         <button
           onClick={toggleLanguage}

@@ -162,11 +162,51 @@ export const CountdownTimer: React.FC = () => {
 
   // Input handlers
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<number>>, value: string, max: number) => {
+    // 如果输入为空，设置为0
+    if (value === '') {
+      setter(0);
+      return;
+    }
+    
+    // 解析输入值
     let num = parseInt(value, 10);
-    if (isNaN(num)) num = 0;
+    
+    // 检查是否为有效数字
+    if (isNaN(num)) {
+      setter(0);
+      return;
+    }
+    
+    // 限制最大值和最小值
     if (num > max) num = max;
     if (num < 0) num = 0;
+    
     setter(num);
+  };
+  
+  // 跟踪用户是否已经与输入框交互过
+  const [isTouched, setIsTouched] = useState<{[key: string]: boolean}>({
+    hours: false,
+    minutes: false,
+    seconds: false
+  });
+
+  // 处理输入框的显示值
+  const getInputValue = (type: 'hours' | 'minutes' | 'seconds', value: number) => {
+    // 如果用户已经与输入框交互过且当前值为0，则显示空字符串
+    // 否则显示实际值（包括初始状态的0）
+    return (isTouched[type] && value === 0) ? '' : value.toString();
+  };
+
+  // 处理输入框获取焦点事件
+  const handleFocus = (type: 'hours' | 'minutes' | 'seconds') => {
+    // 如果这是用户第一次与输入框交互，则设置对应的touched状态
+    if (!isTouched[type]) {
+      setIsTouched(prev => ({
+        ...prev,
+        [type]: true
+      }));
+    }
   };
 
   return (
@@ -228,7 +268,8 @@ export const CountdownTimer: React.FC = () => {
               <label className="text-xs text-gray-500 mb-1">{t('hours').toUpperCase()}</label>
               <input
                 type="number"
-                value={hours}
+                value={getInputValue('hours', hours)}
+                onFocus={() => handleFocus('hours')}
                 onChange={(e) => handleInputChange(setHours, e.target.value, 99)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
@@ -237,7 +278,8 @@ export const CountdownTimer: React.FC = () => {
               <label className="text-xs text-gray-500 mb-1">{t('minutes').toUpperCase()}</label>
               <input
                 type="number"
-                value={minutes}
+                value={getInputValue('minutes', minutes)}
+                onFocus={() => handleFocus('minutes')}
                 onChange={(e) => handleInputChange(setMinutes, e.target.value, 59)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
@@ -246,7 +288,8 @@ export const CountdownTimer: React.FC = () => {
               <label className="text-xs text-gray-500 mb-1">{t('seconds').toUpperCase()}</label>
               <input
                 type="number"
-                value={seconds}
+                value={getInputValue('seconds', seconds)}
+                onFocus={() => handleFocus('seconds')}
                 onChange={(e) => handleInputChange(setSeconds, e.target.value, 59)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-center text-xl text-white focus:border-indigo-500 focus:outline-none transition-colors"
               />
