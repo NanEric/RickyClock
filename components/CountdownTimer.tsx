@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Pause, RotateCcw, BellOff } from 'lucide-react';
+import { Play, Pause, RotateCcw, BellOff, Volume2, VolumeX } from 'lucide-react';
 import { TimerStatus } from '../types';
 
 export const CountdownTimer: React.FC = () => {
@@ -20,6 +20,89 @@ export const CountdownTimer: React.FC = () => {
     const s = totalSeconds % 60;
     return { h, m, s };
   };
+
+  // Audio context and nodes for beep sound
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [oscillator, setOscillator] = useState<OscillatorNode | null>(null);
+  const [gainNode, setGainNode] = useState<GainNode | null>(null);
+
+  // Initialize audio context
+  useEffect(() => {
+    // Create audio context on user interaction to comply with autoplay policies
+    const initAudio = () => {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      
+      setAudioContext(ctx);
+      setOscillator(osc);
+      setGainNode(gain);
+      
+      return () => {
+        gain.disconnect();
+        osc.disconnect();
+        if (ctx.state !== 'closed') {
+          ctx.close();
+        }
+      };
+    };
+    
+    // Initialize audio on first user interaction
+    const handleFirstInteraction = () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+      initAudio();
+    };
+    
+    document.addEventListener('click', handleFirstInteraction, { once: true });
+    document.addEventListener('keydown', handleFirstInteraction, { once: true });
+    
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, []);
+
+  // Handle alarm sound when status changes
+  useEffect(() => {
+    if (status === TimerStatus.COMPLETED) {
+      if (audioContext && oscillator && gainNode) {
+        // Resume audio context if it was suspended
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().catch(e => console.error('Error resuming audio context:', e));
+        }
+        // Start beeping
+        gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+        // Beep pattern: 0.1s on, 0.1s off
+        const beepInterval = setInterval(() => {
+          if (gainNode && audioContext) {
+            const now = audioContext.currentTime;
+            gainNode.gain.cancelScheduledValues(now);
+            gainNode.gain.setValueAtTime(0.5, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          }
+        }, 200);
+        
+        return () => clearInterval(beepInterval);
+      }
+    } else {
+      // Stop beeping
+      if (gainNode && audioContext) {
+        gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      }
+    }
+  }, [status, audioContext, oscillator, gainNode]);
 
   const tick = useCallback(() => {
     setTimeLeft((prev) => {
@@ -57,11 +140,19 @@ export const CountdownTimer: React.FC = () => {
     setStatus(TimerStatus.IDLE);
     setTimeLeft(0);
     if (timerRef.current) clearInterval(timerRef.current);
+    if (gainNode && audioContext) {
+      gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    }
   };
 
   const stopAlarm = () => {
     setStatus(TimerStatus.IDLE);
     setTimeLeft(0);
+    if (gainNode && audioContext) {
+      gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    }
   };
 
   const displayTime = status === TimerStatus.IDLE ? { h: hours, m: minutes, s: seconds } : formatTime(timeLeft);
@@ -99,8 +190,14 @@ export const CountdownTimer: React.FC = () => {
           
           {isRinging ? (
              <div className="text-center">
-               <div className="text-5xl mb-2">⏰</div>
-               <div className="text-red-500 font-bold text-xl uppercase tracking-widest">Time's Up!</div>
+               <div className="flex flex-col items-center">
+                <div className="text-5xl mb-2">⏰</div>
+                <div className="text-red-500 font-bold text-xl uppercase tracking-widest">Time's Up!</div>
+                <div className="flex items-center mt-2 text-sm text-gray-400">
+                  <Volume2 size={16} className="mr-1 animate-pulse" />
+                  <span>闹钟正在响铃</span>
+                </div>
+              </div>
              </div>
           ) : (
             <div className="text-center flex flex-col items-center">
