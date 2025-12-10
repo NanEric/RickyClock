@@ -106,32 +106,61 @@ export const CountdownTimer: React.FC = () => {
     }
   }, [status, audioContext, oscillator, gainNode]);
 
+  // 使用useRef存储倒计时开始时间和剩余时间
+  const startTimeRef = useRef<number | null>(null);
+  const remainingTimeRef = useRef<number>(0);
+
   const tick = useCallback(() => {
-    setTimeLeft((prev) => {
-      if (prev <= 1) {
-        setStatus(TimerStatus.COMPLETED);
-        return 0;
-      }
-      return prev - 1;
-    });
+    if (!startTimeRef.current) return;
+    
+    const now = Date.now();
+    const elapsed = Math.floor((now - startTimeRef.current) / 1000);
+    const newRemaining = Math.max(remainingTimeRef.current - elapsed, 0);
+    
+    setTimeLeft(newRemaining);
+    
+    if (newRemaining <= 0) {
+      setStatus(TimerStatus.COMPLETED);
+      startTimeRef.current = null;
+      if (timerRef.current) clearInterval(timerRef.current);
+    } else {
+      startTimeRef.current = now;
+      remainingTimeRef.current = newRemaining;
+    }
   }, []);
 
   useEffect(() => {
     if (status === TimerStatus.RUNNING) {
-      timerRef.current = setInterval(tick, 1000);
+      // 开始倒计时时记录开始时间和剩余时间
+      startTimeRef.current = Date.now();
+      remainingTimeRef.current = timeLeft;
+      
+      // 使用requestAnimationFrame来获得更精确的定时器
+      const animate = () => {
+        tick();
+        if (status === TimerStatus.RUNNING && remainingTimeRef.current > 0) {
+          timerRef.current = setTimeout(animate, 100);
+        }
+      };
+      
+      timerRef.current = setTimeout(animate, 100);
+      
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [status, tick]);
+  }, [status, tick, timeLeft]);
 
   const startTimer = () => {
     if (status === TimerStatus.IDLE || status === TimerStatus.COMPLETED) {
       const total = hours * 3600 + minutes * 60 + seconds;
       if (total === 0) return;
       setTimeLeft(total);
+      remainingTimeRef.current = total;
+    } else if (status === TimerStatus.PAUSED) {
+      // 恢复倒计时时，remainingTimeRef已经保存了剩余时间
     }
     setStatus(TimerStatus.RUNNING);
   };
@@ -141,7 +170,11 @@ export const CountdownTimer: React.FC = () => {
   const resetTimer = () => {
     setStatus(TimerStatus.IDLE);
     setTimeLeft(0);
-    if (timerRef.current) clearInterval(timerRef.current);
+    startTimeRef.current = null;
+    remainingTimeRef.current = 0;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
   };
 
   // Clear all input fields
